@@ -89,71 +89,6 @@ Generate the API wrapper function.`,
   return chatCompletion(messages);
 }
 
-export default {
-  fetch: async (req: Request): Promise<Response> => {
-    try {
-      const url = new URL(req.url);
-
-      if (url.pathname.startsWith("/endpoint/")) {
-        const prompt = decodeURIComponent(url.pathname.slice(10));
-        const { code, apiCode } = await generateAllCode(prompt);
-
-        const headers = {};
-        req.headers.forEach((value, key) => (headers[key] = value));
-
-        let body = undefined;
-        try {
-          body = req.text();
-        } catch (e) {}
-
-        const result = await eval(`
-          (async ()=>{
-            ${code}
-            ${apiCode}
-            const result = await api(${JSON.stringify({
-              url: req.url,
-              method: req.method,
-              body,
-              headers,
-            })});
-            return result;
-          })()
-        `);
-
-        return new Response(result.body, {
-          status: result.status,
-          headers: result.headers,
-        });
-      }
-
-      if (req.method !== "GET") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-
-      const prompt = url.searchParams.get("prompt");
-      if (!prompt) {
-        return new Response("Missing prompt parameter", { status: 400 });
-      }
-
-      const result = await generateAllCode(prompt);
-      return new Response(JSON.stringify(result, null, 2), {
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (error) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: error.message,
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-    }
-  },
-};
-
 async function generateAllCode(prompt: string) {
   let currentCode = "";
   let lastError = "";
@@ -207,3 +142,102 @@ Please update the code to satisfy the tests.`,
 
   throw new Error(`Max attempts reached. Last error: ${lastError}`);
 }
+
+export default {
+  fetch: async (req: Request): Promise<Response> => {
+    // Handle CORS preflight requests
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "*",
+          "Access-Control-Max-Age": "86400",
+        },
+      });
+    }
+
+    try {
+      const url = new URL(req.url);
+
+      if (url.pathname.startsWith("/endpoint/")) {
+        const prompt = decodeURIComponent(url.pathname.slice(10));
+        const { code, apiCode } = await generateAllCode(prompt);
+
+        const headers = {};
+        req.headers.forEach((value, key) => (headers[key] = value));
+
+        let body = undefined;
+        try {
+          body = req.text();
+        } catch (e) {}
+
+        const result = await eval(`
+          (async ()=>{
+            ${code}
+            ${apiCode}
+            const result = await api(${JSON.stringify({
+              url: req.url,
+              method: req.method,
+              body,
+              headers,
+            })});
+            return result;
+          })()
+        `);
+
+        // Add CORS headers to actual response
+        const corsHeaders = {
+          "Access-Control-Allow-Origin": "*",
+          ...result.headers,
+        };
+
+        return new Response(result.body, {
+          status: result.status,
+          headers: corsHeaders,
+        });
+      }
+
+      if (req.method !== "GET") {
+        return new Response("Method not allowed", {
+          status: 405,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+
+      const prompt = url.searchParams.get("prompt");
+      if (!prompt) {
+        return new Response("Missing prompt parameter", {
+          status: 400,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+
+      const result = await generateAllCode(prompt);
+      return new Response(JSON.stringify(result, null, 2), {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    } catch (error) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: error.message,
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        },
+      );
+    }
+  },
+};
