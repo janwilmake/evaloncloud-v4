@@ -1,0 +1,176 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Code Generation and API Execution Service",
+    "version": "1.0.0",
+    "description": "Service for generating and executing code based on prompts"
+  },
+  "servers": [
+    {
+      "url": "https://evaloncloud-v.deno.dev"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Generate code from prompt",
+        "parameters": [
+          {
+            "name": "prompt",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The prompt describing the code to generate"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully generated code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Generated function implementation"
+                    },
+                    "tests": {
+                      "type": "string",
+                      "description": "Generated test code"
+                    },
+                    "apiCode": {
+                      "type": "string",
+                      "description": "Generated API wrapper code"
+                    },
+                    "attempts": {
+                      "type": "integer",
+                      "description": "Number of attempts made to generate valid code"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing prompt parameter"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/endpoint/{prompt}": {
+      "parameters": [
+        {
+          "name": "prompt",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "URL-encoded prompt describing the API to generate"
+        }
+      ],
+      "get": {
+        "summary": "Execute generated API (GET)",
+        "responses": {
+          "default": {
+            "description": "Dynamic response based on generated API",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Execute generated API (POST)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Dynamic response based on generated API",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Execute generated API (PUT)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Dynamic response based on generated API",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Execute generated API (DELETE)",
+        "responses": {
+          "default": {
+            "description": "Dynamic response based on generated API",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
