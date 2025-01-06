@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://evaloncloud-v.deno.dev"
+      "url": "https://janwilmake-evaloncloud-v4.deno.dev"
     }
   ],
   "paths": {

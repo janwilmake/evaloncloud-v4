@@ -100,7 +100,7 @@
             if (!prompt) return;
 
             try {
-                const response = await fetch(`https://evaloncloud-v.deno.dev/?prompt=${encodeURIComponent(prompt)}`);
+                const response = await fetch(`https://janwilmake-evaloncloud-v4.deno.dev/?prompt=${encodeURIComponent(prompt)}`);
                 const data = await response.json();
 
                 if (data.success) {
