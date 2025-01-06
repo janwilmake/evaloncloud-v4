@@ -14,7 +14,17 @@
     "/": {
       "get": {
         "summary": "Generate code from prompt",
+        "description": "Must either provide a prompt or X-Execute-Prompt to immediately execute",
         "parameters": [
+          {
+            "name": "X-Execute-Prompt",
+            "in": "header",
+            "description": "Prompt to execute code generation and run the result. If prompt is provided like this as header, you don't need to pass prompt/output, and the generated API will be immediately requested with any additional headers,body, and path/query parameters you pass.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "prompt",
             "in": "query",
@@ -103,16 +113,6 @@
           "200": {
             "description": "CORS headers"
           }
-        }
-      }
-    }
-  },
-  "components": {
-    "headers": {
-      "X-Execute-Prompt": {
-        "description": "Prompt to execute code generation and run the result",
-        "schema": {
-          "type": "string"
         }
       }
     }
