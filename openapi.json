@@ -1,13 +1,13 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Code Generation and API Execution Service",
-    "version": "1.0.0",
-    "description": "Service for generating and executing code based on prompts"
+    "title": "Code Generation API",
+    "description": "API for generating and executing code based on prompts",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://janwilmake-evaloncloud-v4.deno.dev"
+      "url": "https://chatcompletions.com"
     }
   ],
   "paths": {
@@ -22,12 +22,22 @@
             "schema": {
               "type": "string"
             },
-            "description": "The prompt describing the code to generate"
+            "description": "The prompt to generate code from"
+          },
+          {
+            "name": "output",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["api", "json"]
+            },
+            "description": "Output format. 'api' returns API code, 'json' returns full result"
           }
         ],
         "responses": {
           "200": {
-            "description": "Successfully generated code",
+            "description": "Generated code",
             "content": {
               "application/json": {
                 "schema": {
@@ -37,22 +47,26 @@
                       "type": "boolean"
                     },
                     "code": {
-                      "type": "string",
-                      "description": "Generated function implementation"
+                      "type": "string"
                     },
                     "tests": {
-                      "type": "string",
-                      "description": "Generated test code"
+                      "type": "string"
                     },
                     "apiCode": {
-                      "type": "string",
-                      "description": "Generated API wrapper code"
+                      "type": "string"
+                    },
+                    "fullApiCode": {
+                      "type": "string"
                     },
                     "attempts": {
-                      "type": "integer",
-                      "description": "Number of attempts made to generate valid code"
+                      "type": "integer"
                     }
                   }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -60,8 +74,11 @@
           "400": {
             "description": "Missing prompt parameter"
           },
+          "405": {
+            "description": "Method not allowed"
+          },
           "500": {
-            "description": "Internal server error",
+            "description": "Server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -79,96 +96,23 @@
             }
           }
         }
+      },
+      "options": {
+        "summary": "CORS preflight",
+        "responses": {
+          "200": {
+            "description": "CORS headers"
+          }
+        }
       }
-    },
-    "/endpoint/{prompt}": {
-      "parameters": [
-        {
-          "name": "prompt",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          },
-          "description": "URL-encoded prompt describing the API to generate"
-        }
-      ],
-      "get": {
-        "summary": "Execute generated API (GET)",
-        "responses": {
-          "default": {
-            "description": "Dynamic response based on generated API",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Execute generated API (POST)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "description": "Dynamic response based on generated API",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "summary": "Execute generated API (PUT)",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "description": "Dynamic response based on generated API",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Execute generated API (DELETE)",
-        "responses": {
-          "default": {
-            "description": "Dynamic response based on generated API",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
+    }
+  },
+  "components": {
+    "headers": {
+      "X-Execute-Prompt": {
+        "description": "Prompt to execute code generation and run the result",
+        "schema": {
+          "type": "string"
         }
       }
     }

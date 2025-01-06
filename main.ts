@@ -133,6 +133,36 @@ Please update the code to satisfy the tests.`,
         code: currentCode,
         tests: testCode,
         apiCode,
+        fullApiCode: `
+export default {
+  fetch: async (request)=>{
+      const {url,method,body} = request;
+
+
+      const headers = {};
+      request.headers.forEach((value, key) => (headers[key] = value));
+
+      let body = undefined;
+      try {
+        body = request.text();
+      } catch (e) {}
+
+      ${currentCode}
+
+      ${apiCode}
+
+      const result = await api({url,method,headers,body});
+
+
+      return new Response(result.body, {
+        status: result.status,
+        headers: result.headers,
+      });
+
+  }
+}
+        `,
+
         attempts: attempt + 1,
       };
     }
@@ -160,9 +190,10 @@ export default {
     try {
       const url = new URL(req.url);
 
-      if (url.pathname.startsWith("/endpoint/")) {
-        const prompt = decodeURIComponent(url.pathname.slice(10));
-        const { code, apiCode } = await generateAllCode(prompt);
+      const executePrompt = req.headers.get("X-Execute-Prompt");
+
+      if (!!executePrompt) {
+        const { code, apiCode } = await generateAllCode(executePrompt);
 
         const headers = {};
         req.headers.forEach((value, key) => (headers[key] = value));
@@ -208,6 +239,7 @@ export default {
       }
 
       const prompt = url.searchParams.get("prompt");
+      const output = url.searchParams.get("output");
       if (!prompt) {
         return new Response("Missing prompt parameter", {
           status: 400,
@@ -218,12 +250,17 @@ export default {
       }
 
       const result = await generateAllCode(prompt);
-      return new Response(JSON.stringify(result, null, 2), {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
+
+      return new Response(
+        output === "api" ? result.fullApiCode : JSON.stringify(result, null, 2),
+        {
+          headers: {
+            "Content-Type":
+              output === "api" ? "text/plain" : "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
         },
-      });
+      );
     } catch (error) {
       return new Response(
         JSON.stringify({
